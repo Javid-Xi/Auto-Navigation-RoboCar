@@ -14,6 +14,7 @@ MCU_Program: [RoboCar_Driver](https://github.com/Javid-Xi/RoboCar_Driver)
 背面斜45°角：
 <div><img src="https://cdn.jsdelivr.net/gh/Javid-Xi/cdn@1.7.3/img/blog/roscar/robocar2.JPG" width="80%" /></div>
 
-## Based on ROS
+## Development platform
+### ROS
 <a href="https://www.ros.org/">
 <img src=https://cdn.jsdelivr.net/gh/Javid-Xi/Wheel_Chair@1.0/Photo/software/ros.jpg width=40% alt="FreeRTOS"></a>
