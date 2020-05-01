@@ -4,23 +4,26 @@ Autonomous Navigation Robot Based on SLAM algorithm of Cartographer.
 MCU_Program: [RoboCar_Driver](https://github.com/Javid-Xi/RoboCar_Driver)
 
 RoboCar系列博客: [Blogs](https://javid.cn/tag/robocar/)  
-正在不断更新中...
+不断更新中...
 
 # Under development
-
 ## 正在开发中...
 
-## 渲染图(Model)
-正面斜45°角：
+## 1. 渲染图(Model)
+
+### 1.1 正面(Front)
+
 <div><img src="https://cdn.jsdelivr.net/gh/Javid-Xi/Auto-Navigation-RoboCar@1.0/Model/robocar1.jpg" width="80%" /></div> 
 
-背面斜45°角：
+### 1.2 背面(Back)
+
 <div><img src="https://cdn.jsdelivr.net/gh/Javid-Xi/Auto-Navigation-RoboCar@1.0/Model/robocar2.jpg" width="80%" /></div>
 
-底部视角：
+### 1.3 底部(Bottom)
+
 <center><img src="https://cdn.jsdelivr.net/gh/Javid-Xi/Auto-Navigation-RoboCar@1.0/Model/robocar5.jpg" width="80%" style="border-radius:20px"/></center>
 
-其他角度：
+### 1.4 侧面(Side)
 
 <table>
 	<tr>
@@ -29,7 +32,8 @@ RoboCar系列博客: [Blogs](https://javid.cn/tag/robocar/)
 	</tr>
 </table>
 
-## Development platform
-### ROS
-<a href="https://www.ros.org/">
-<img src=https://cdn.jsdelivr.net/gh/Javid-Xi/Wheel_Chair@1.0/Photo/software/ros.jpg width=40% alt="FreeRTOS"></a>
+## 2. Development platform
+
+### 2.1 ROS
+
+<a href="https://www.ros.org/"><img src=https://cdn.jsdelivr.net/gh/Javid-Xi/Wheel_Chair@1.0/Photo/software/ros.jpg width=40% alt="FreeRTOS"></a>
