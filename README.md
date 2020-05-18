@@ -6,7 +6,6 @@ RoboCar系列博客: [Blogs](https://javid.cn/tag/robocar/)
 (目前已暂停更新)
 
 # Under development
-## 开发中...
 
 ## 1. 实物图 (RoboCar-N1)
 <div><img src="https://cdn.jsdelivr.net/gh/Javid-Xi/Auto-Navigation-RoboCar@1.5/RoboCar/RoboCar-N1.jpg" width="80%" /></div> 
