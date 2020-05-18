@@ -8,24 +8,20 @@ RoboCar系列博客: [Blogs](https://javid.cn/tag/robocar/)
 # Under development
 ## 正在开发中...
 
-## 1. 实物图(RoboCar N1)
+## 1. 实物图 (RoboCar-N1)
 <div><img src="https://cdn.jsdelivr.net/gh/Javid-Xi/Auto-Navigation-RoboCar@1.5/RoboCar/RoboCar-N1.jpg" width="80%" /></div> 
 
-## 2. 渲染图(Model)
+## 2. 渲染图 (Model)
 
-### 2.1 正面(Front)
+### 2.1 正面 (Front)
 
 <div><img src="https://cdn.jsdelivr.net/gh/Javid-Xi/Auto-Navigation-RoboCar@1.5/Model/robocar1.jpg" width="80%" /></div> 
 
-### 2.2 背面(Back)
-
-<div><img src="https://cdn.jsdelivr.net/gh/Javid-Xi/Auto-Navigation-RoboCar@1.5/Model/robocar2.jpg" width="80%" /></div>
-
-### 2.3 底部(Bottom)
+### 2.2 底部 (Bottom)
 
 <center><img src="https://cdn.jsdelivr.net/gh/Javid-Xi/Auto-Navigation-RoboCar@1.5/Model/robocar3.jpg" width="80%" style="border-radius:20px"/></center>
 
-### 2.4 侧面(Side)
+### 2.3 侧面 (Side)
 
 <table>
 	<tr>
