@@ -1,5 +1,5 @@
 # Auto-Navigation-RoboCar
-Autonomous Navigation Robot Based on SLAM algorithm of Cartographer.
+Autonomous Navigation Robot Based on SLAM.  
 MCU_Program: [RoboCar_Driver](https://github.com/Javid-Xi/RoboCar_Driver)
 
 RoboCar系列博客: [Blogs](https://javid.cn/tag/robocar/)  
