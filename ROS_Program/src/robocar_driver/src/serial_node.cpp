@@ -11,6 +11,7 @@
 ***********************************************************/
 
 #include <ros/ros.h>
+#include <ros/time.h>
 #include <serial/serial.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Empty.h>
@@ -18,10 +19,34 @@
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
 
-#define	sBUFFERSIZE	9//串口发送缓存长度
-#define	rBUFFERSIZE	19//串口接收缓存长度
+#define	sBUFFERSIZE	9	//串口发送缓存长度
+#define	rBUFFERSIZE	19	//串口接收缓存长度
+#define wheel_radius 0.0408 //轮胎半径
+#define wheel_a_mec 0.095   //麦克纳姆运动模型A参数    
+#define wheel_b_mec 0.075  //麦克纳姆运动模型B参数
+#define wheel_ab_mec wheel_a_mec+wheel_b_mec   //麦克纳姆运动模型A参数    
+
+ros::Time current_time, last_time;
+
 unsigned char s_buffer[sBUFFERSIZE];//发送缓存
 unsigned char r_buffer[rBUFFERSIZE];//接收缓存
+
+//里程计信息
+double x = 0.0;
+double y = 0.0;
+double th = 0.0;
+
+double vx = 0.0;
+double vy = 0.0;
+double vth = 0.0;
+
+
+//发送数据枚举类型
+enum SendCommandType {
+	SPEED_INFO = 0,
+	PID_INFO,
+}SendCommandType;
+
 
 //联合体，用于浮点数与16进制的快速转换
 typedef union{
@@ -34,6 +59,20 @@ typedef	union {
     short sv;
 	unsigned char cv[2];
 } short_union;
+
+//发送数据结构
+typedef	struct {
+
+    //电机编码器读数
+    short_union Speed_A;
+    short_union Speed_B;
+    short_union Speed_C;
+    short_union Speed_D;
+
+    //偏航角
+    short_union yaw;
+
+} rcv_data;
 
 serial::Serial ser;
 
@@ -75,7 +114,7 @@ void uart_data_send(const geometry_msgs::Twist& cmd_vel){
 	
 }
 //接收数据分析与校验
-unsigned char data_analysis(unsigned char *buffer)
+unsigned char data_check(unsigned char *buffer)
 {
 	unsigned char ret=0,csum;
 	//int i;
@@ -110,9 +149,9 @@ int main (int argc, char** argv){
     ros::NodeHandle nh;
 
 	//订阅/turtle1/cmd_vel话题用于测试 $ rosrun turtlesim turtle_teleop_key
-	ros::Subscriber write_sub = nh.subscribe("/turtle1/cmd_vel",1000,cmd_vel_callback);
+	ros::Subscriber write_sub = nh.subscribe("/turtle1/cmd_vel",50,cmd_vel_callback);
 	//发布里程计话题 odom
-	ros::Publisher read_pub = nh.advertise<nav_msgs::Odometry>("odom",1000);
+	ros::Publisher read_pub = nh.advertise<nav_msgs::Odometry>("odom",50);
 
     try
     {
@@ -142,14 +181,14 @@ int main (int argc, char** argv){
 	//定义四元数变量
 	geometry_msgs::Quaternion odom_quat;
 	//位置 速度 角速度
-	float_union posx,posy,vx,vy,va,yaw;
+	rcv_data uart_rcv_data;
 	//定义时间
 	ros::Time current_time, last_time;
 	current_time = ros::Time::now();
 	last_time = ros::Time::now();
 
     //10hz频率执行
-    ros::Rate loop_rate(10);
+    ros::Rate loop_rate(20);
     while(ros::ok()){
 
         ros::spinOnce();
@@ -162,27 +201,42 @@ int main (int argc, char** argv){
 				ROS_INFO("[0x%02x]",r_buffer[i]);
 			ROS_INFO_STREAM("End reading from serial port");
 			*/
-			if(data_analysis(r_buffer) != 0){
-				int i;
-				for(i=0;i<4;i++){
-					posx.cvalue[i] = r_buffer[2+i];//x 坐标
-					posy.cvalue[i] = r_buffer[6+i];//y 坐标
-					vx.cvalue[i] = r_buffer[10+i];// x方向速度
-					vy.cvalue[i] = r_buffer[14+i];//y方向速度
-					va.cvalue[i] = r_buffer[18+i];//角速度
-					yaw.cvalue[i] = r_buffer[22+i];	//yaw 偏航角
-				}			
+			if(data_check(r_buffer) != 0){
+				for(i=0;i<2;i++){
+					uart_rcv_data.Speed_A.cv[i] = r_buffer[2+i];
+					uart_rcv_data.Speed_B.cv[i] = r_buffer[4+i];
+					uart_rcv_data.Speed_C.cv[i] = r_buffer[6+i];
+					uart_rcv_data.Speed_D.cv[i] = r_buffer[8+i];
+					uart_rcv_data.yaw.cv[i] = r_buffer[10+i];
+			}
+
+				vx = ( uart_rcv_data.Speed_A.sv * (-0.25) + uart_rcv_data.Speed_B.sv * (+0.25) + uart_rcv_data.Speed_C.sv * (-0.25) + uart_rcv_data.Speed_D.sv * (+0.25) ) * wheel_radius / 72 ;
+				vy = ( uart_rcv_data.Speed_A.sv * (+0.25) + uart_rcv_data.Speed_B.sv * (+0.25) + uart_rcv_data.Speed_C.sv * (+0.25) + uart_rcv_data.Speed_D.sv * (+0.25) ) * wheel_radius / 72 ;
+				vth = ( uart_rcv_data.Speed_A.sv * (+0.25) + uart_rcv_data.Speed_B.sv * (-0.25) + uart_rcv_data.Speed_C.sv * (-0.25) + uart_rcv_data.Speed_D.sv * (+0.25) ) * wheel_radius / 72 / wheel_ab_mec ;
+
+				curr_time = ros::Time::now();
+				double dt = (curr_time - last_time).toSec();
+				double delta_x = (vx * cos(th) - vy * sin(th)) * dt;
+				double delta_y = (vx * sin(th) + vy * cos(th)) * dt;
+				double delta_th = vth * dt;
+
+				x += delta_x;
+				y += delta_y;
+				th += delta_th;
+
+				last_time = curr_time;
+					
 				//将偏航角转换成四元数才能发布
-				odom_quat = tf::createQuaternionMsgFromYaw(yaw.fvalue);
+				odom_quat = tf::createQuaternionMsgFromYaw(vth);
 				
 				//发布坐标变换父子坐标系
 				odom_trans.header.frame_id = "odom";
 				odom_trans.child_frame_id = "base_link";
 				//填充获取的数据
-				odom_trans.transform.translation.x = posx.fvalue;//x坐标
-				odom_trans.transform.translation.y = posy.fvalue;//y坐标
+				odom_trans.transform.translation.x = x;//x坐标
+				odom_trans.transform.translation.y = y;//y坐标
 				odom_trans.transform.translation.z = 0;//z坐标				
-				odom_trans.transform.rotation = odom_quat;//偏航角
+				odom_trans.transform.rotation = th;//偏航角
 				//发布tf坐标变换
 				odom_broadcaster.sendTransform(odom_trans);
 				//获取当前时间
@@ -193,14 +247,14 @@ int main (int argc, char** argv){
 				odom.header.frame_id = "odom";
 				odom.child_frame_id = "base_link";
 				//里程计位置数据
-				odom.pose.pose.position.x = posx.fvalue;
-				odom.pose.pose.position.y = posy.fvalue;
+				odom.pose.pose.position.x = x;
+				odom.pose.pose.position.y = y;
 				odom.pose.pose.position.z = 0;
-				odom.pose.pose.orientation = odom_quat;
+				odom.pose.pose.orientation = th;
 				//载入线速度和角速度
-				odom.twist.twist.linear.x = vx.fvalue;
-				odom.twist.twist.linear.y = vy.fvalue;
-				odom.twist.twist.angular.z = va.fvalue;
+				odom.twist.twist.linear.x = vx;
+				odom.twist.twist.linear.y = vy;
+				odom.twist.twist.angular.z = vth;
 				//发布里程计消息
 				read_pub.publish(odom);
 				ROS_INFO("publish odometry");
