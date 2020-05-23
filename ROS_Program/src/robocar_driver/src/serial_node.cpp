@@ -25,6 +25,7 @@
 #define wheel_a_mec 0.095   //麦克纳姆运动模型A参数    
 #define wheel_b_mec 0.075  //麦克纳姆运动模型B参数
 #define wheel_ab_mec wheel_a_mec+wheel_b_mec   //麦克纳姆运动模型A参数    
+#define	PI	3.1415926535897932f
 
 ros::Time current_time, last_time;
 
@@ -208,11 +209,12 @@ int main (int argc, char** argv){
 					uart_rcv_data.Speed_C.cv[i] = r_buffer[6+i];
 					uart_rcv_data.Speed_D.cv[i] = r_buffer[8+i];
 					uart_rcv_data.yaw.cv[i] = r_buffer[10+i];
-			}
+				}
 
-				vx = ( uart_rcv_data.Speed_A.sv * (-0.25) + uart_rcv_data.Speed_B.sv * (+0.25) + uart_rcv_data.Speed_C.sv * (-0.25) + uart_rcv_data.Speed_D.sv * (+0.25) ) * wheel_radius / 72 ;
-				vy = ( uart_rcv_data.Speed_A.sv * (+0.25) + uart_rcv_data.Speed_B.sv * (+0.25) + uart_rcv_data.Speed_C.sv * (+0.25) + uart_rcv_data.Speed_D.sv * (+0.25) ) * wheel_radius / 72 ;
-				vth = ( uart_rcv_data.Speed_A.sv * (+0.25) + uart_rcv_data.Speed_B.sv * (-0.25) + uart_rcv_data.Speed_C.sv * (-0.25) + uart_rcv_data.Speed_D.sv * (+0.25) ) * wheel_radius / 72 / wheel_ab_mec ;
+				//编码器读数/1440 × 2 × PI /50ms = 单个轮子与地面的相对速度(m/s)
+				vx = ( uart_rcv_data.Speed_A.sv * (-0.25) + uart_rcv_data.Speed_B.sv * (+0.25) + uart_rcv_data.Speed_C.sv * (-0.25) + uart_rcv_data.Speed_D.sv * (+0.25) ) * wheel_radius * PI  / 36 ;
+				vy = ( uart_rcv_data.Speed_A.sv * (+0.25) + uart_rcv_data.Speed_B.sv * (+0.25) + uart_rcv_data.Speed_C.sv * (+0.25) + uart_rcv_data.Speed_D.sv * (+0.25) ) * wheel_radius *	PI  / 36 ;
+				vth = ( uart_rcv_data.Speed_A.sv * (+0.25) + uart_rcv_data.Speed_B.sv * (-0.25) + uart_rcv_data.Speed_C.sv * (-0.25) + uart_rcv_data.Speed_D.sv * (+0.25) ) * wheel_radius * PI  / 36 / wheel_ab_mec ;
 
 				curr_time = ros::Time::now();
 				double dt = (curr_time - last_time).toSec();

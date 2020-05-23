@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="robocar_driver" type="robocar_driver_node" name="serial_node" output="screen">
+  </node>
+</launch>

@@ -21,10 +21,10 @@ include_directories(
 )
 
 add_executable( robocar_driver
-  include/serial_mod/driver.h
+  include/robocar_driver/driver.h
   src/serial_node.cpp)
 
-target_link_libraries( serial_mod
+target_link_libraries( robocar_driver
   ${catkin_LIBRARIES}
 )
 
