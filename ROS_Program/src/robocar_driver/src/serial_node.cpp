@@ -18,7 +18,7 @@
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
 
-#define	sBUFFERSIZE	16//串口发送缓存长度
+#define	sBUFFERSIZE	9//串口发送缓存长度
 #define	rBUFFERSIZE	19//串口接收缓存长度
 unsigned char s_buffer[sBUFFERSIZE];//发送缓存
 unsigned char r_buffer[rBUFFERSIZE];//接收缓存
@@ -46,8 +46,8 @@ serial::Serial ser;
 void uart_data_send(const geometry_msgs::Twist& cmd_vel){
 	//unsigned char i;
 	short_union Vx,Vy,Ang_v;
-	Vx.sv = (short)cmd_vel.linear.x * 72;//乘以72(0.05*1440)转换为编码器速度
-	Vy.sv = (short)cmd_vel.linear.y * 72;
+	Vx.sv = cmd_vel.linear.x * 72;//乘以72(0.05*1440)转换为编码器速度
+	Vy.sv = cmd_vel.linear.y * 72;
 	Ang_v.sv = cmd_vel.angular.z * 72;
 	
 	memset(s_buffer,0,sizeof(s_buffer));
@@ -79,13 +79,11 @@ unsigned char data_analysis(unsigned char *buffer)
 {
 	unsigned char ret=0,csum;
 	//int i;
-	if((buffer[0]==0xaa) && (buffer[1]==0xaa)){
+	if((buffer[0]==0xff) && (buffer[1]==0xaa)){
 		csum = buffer[2]^buffer[3]^buffer[4]^buffer[5]^buffer[6]^buffer[7]^
-				buffer[8]^buffer[9]^buffer[10]^buffer[11]^buffer[12]^buffer[13]^
-				buffer[14]^buffer[15]^buffer[16]^buffer[17]^buffer[18]^buffer[19]^
-				buffer[20]^buffer[21]^buffer[22]^buffer[23]^buffer[24]^buffer[25];
+				buffer[8]^buffer[9]^buffer[10]^buffer[11];
 		//ROS_INFO("check sum:0x%02x",csum);
-		if(csum == buffer[26]){
+		if(csum == buffer[12]){
 			ret = 1;//校验通过，数据包正确
 		}
 		else 
@@ -104,8 +102,9 @@ void cmd_vel_callback(const geometry_msgs::Twist& cmd_vel){
 	ROS_INFO("I heard linear velocity: x-[%f],y-[%f],",cmd_vel.linear.x,cmd_vel.linear.y);
 	ROS_INFO("I heard angular velocity: [%f]",cmd_vel.angular.z);
 	std::cout << "Twist Received" << std::endl;	
-	data_pack(cmd_vel);
+	uart_data_send(cmd_vel);
 }
+
 int main (int argc, char** argv){
     ros::init(argc, argv, "serial_node");
     ros::NodeHandle nh;
