@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(slam_mod)
+project(robocar_slam)
 find_package(catkin REQUIRED COMPONENTS
 	roscpp
 	rospy

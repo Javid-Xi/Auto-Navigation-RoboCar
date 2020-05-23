@@ -27,8 +27,6 @@
 #define wheel_ab_mec wheel_a_mec+wheel_b_mec   //麦克纳姆运动模型A参数    
 #define	PI	3.1415926535897932f
 
-ros::Time current_time, last_time;
-
 unsigned char s_buffer[sBUFFERSIZE];//发送缓存
 unsigned char r_buffer[rBUFFERSIZE];//接收缓存
 
@@ -188,7 +186,7 @@ int main (int argc, char** argv){
 	current_time = ros::Time::now();
 	last_time = ros::Time::now();
 
-    //10hz频率执行
+    //20hz频率执行
     ros::Rate loop_rate(20);
     while(ros::ok()){
 
@@ -216,8 +214,9 @@ int main (int argc, char** argv){
 				vy = ( uart_rcv_data.Speed_A.sv * (+0.25) + uart_rcv_data.Speed_B.sv * (+0.25) + uart_rcv_data.Speed_C.sv * (+0.25) + uart_rcv_data.Speed_D.sv * (+0.25) ) * wheel_radius *	PI  / 36 ;
 				vth = ( uart_rcv_data.Speed_A.sv * (+0.25) + uart_rcv_data.Speed_B.sv * (-0.25) + uart_rcv_data.Speed_C.sv * (-0.25) + uart_rcv_data.Speed_D.sv * (+0.25) ) * wheel_radius * PI  / 36 / wheel_ab_mec ;
 
-				curr_time = ros::Time::now();
-				double dt = (curr_time - last_time).toSec();
+				//获取当前时间
+				current_time = ros::Time::now();
+				double dt = (current_time - last_time).toSec();
 				double delta_x = (vx * cos(th) - vy * sin(th)) * dt;
 				double delta_y = (vx * sin(th) + vy * cos(th)) * dt;
 				double delta_th = vth * dt;
@@ -225,24 +224,22 @@ int main (int argc, char** argv){
 				x += delta_x;
 				y += delta_y;
 				th += delta_th;
-
-				last_time = curr_time;
 					
 				//将偏航角转换成四元数才能发布
-				odom_quat = tf::createQuaternionMsgFromYaw(vth);
+				odom_quat = tf::createQuaternionMsgFromYaw(th);
 				
 				//发布坐标变换父子坐标系
+				odom_trans.header.stamp = current_time;
 				odom_trans.header.frame_id = "odom";
 				odom_trans.child_frame_id = "base_link";
 				//填充获取的数据
 				odom_trans.transform.translation.x = x;//x坐标
 				odom_trans.transform.translation.y = y;//y坐标
-				odom_trans.transform.translation.z = 0;//z坐标				
-				odom_trans.transform.rotation = th;//偏航角
+				odom_trans.transform.translation.z = 0.0;//z坐标				
+				odom_trans.transform.rotation = odom_quat;//四元数
 				//发布tf坐标变换
 				odom_broadcaster.sendTransform(odom_trans);
-				//获取当前时间
-				current_time = ros::Time::now();
+
 				//载入里程计时间戳
 				odom.header.stamp = current_time;
 				//里程计父子坐标系
@@ -252,13 +249,14 @@ int main (int argc, char** argv){
 				odom.pose.pose.position.x = x;
 				odom.pose.pose.position.y = y;
 				odom.pose.pose.position.z = 0;
-				odom.pose.pose.orientation = th;
+				odom.pose.pose.orientation = odom_quat;
 				//载入线速度和角速度
 				odom.twist.twist.linear.x = vx;
 				odom.twist.twist.linear.y = vy;
 				odom.twist.twist.angular.z = vth;
 				//发布里程计消息
 				read_pub.publish(odom);
+
 				ROS_INFO("publish odometry");
 				last_time = current_time;				
 			}
