@@ -22,7 +22,7 @@ include_directories(
 
 add_executable( robocar_driver
   include/robocar_driver/driver.h
-  src/serial_node.cpp)
+  src/robocar_driver.cpp)
 
 target_link_libraries( robocar_driver
   ${catkin_LIBRARIES}
