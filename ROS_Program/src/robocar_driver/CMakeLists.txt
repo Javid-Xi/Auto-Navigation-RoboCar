@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(serial_mod)
+project(robocar_driver)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -20,8 +20,9 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable( serial_mod
-  src/serial_mod.cpp)
+add_executable( robocar_driver
+  include/serial_mod/driver.h
+  src/serial_node.cpp)
 
 target_link_libraries( serial_mod
   ${catkin_LIBRARIES}

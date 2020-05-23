@@ -1,0 +1,8 @@
+/.vscode/
+/devel/
+/devel_isolat/
+/el_isolated/
+/el/
+/build/
+.ycm_extra_conf.py
+.ycm_extra_conf.pyc

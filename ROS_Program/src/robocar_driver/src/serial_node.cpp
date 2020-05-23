@@ -1,9 +1,15 @@
-/*********************************
- * 串口节点，订阅cmd_vel话题并发布odometry话题
- * 从cmd_vel话题中分解出速度值通过串口送到移动底盘
- * 从底盘串口接收里程消息整合到odometry话题用于发布
- * 
- * *******************************/
+ /**
+************************************************************
+* @file         uart.c
+* @brief        串口节点，订阅cmd_vel话题并发布odometry话题
+* 				从cmd_vel话题中分解出速度值通过串口送到移动底盘
+* 				从底盘串口接收里程消息整合到odometry话题用于发布
+* @author       Javid
+* @date         2020-05-14
+* @version      1.0
+*
+***********************************************************/
+
 #include <ros/ros.h>
 #include <serial/serial.h>
 #include <std_msgs/String.h>
@@ -12,68 +18,54 @@
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
 
-#define	sBUFFERSIZE	16//send buffer size 串口发送缓存长度
-#define	rBUFFERSIZE	19//receive buffer size 串口接收缓存长度
+#define	sBUFFERSIZE	16//串口发送缓存长度
+#define	rBUFFERSIZE	19//串口接收缓存长度
 unsigned char s_buffer[sBUFFERSIZE];//发送缓存
 unsigned char r_buffer[rBUFFERSIZE];//接收缓存
 
-/************************************
- * 串口数据发送格式共15字节
- * head head linear_v_x  linear_v_y angular_v  CRC
- * 0xff 0xff float       float      float      u8
- * **********************************/
-/**********************************************************
- * 串口接收数据格式共27字节
- * head head x-position y-position x-speed y-speed angular-speed pose-angular CRC
- * 0xaa 0xaa float      float      float   float   float         float(yaw)   u8
- * ********************************************************/
-
 //联合体，用于浮点数与16进制的快速转换
 typedef union{
-	unsigned char cv[4];
 	float fv;
+	unsigned char cv[4];
 }float_union;
 
 //short与HEX快速获取
 typedef	union {
-	unsigned char cv[2];
     short sv;
+	unsigned char cv[2];
 } short_union;
 
 serial::Serial ser;
 
-/**********************************************************
- * 数据打包，将获取的cmd_vel信息打包并通过串口发送
- * ********************************************************/
-void data_pack(const geometry_msgs::Twist& cmd_vel){
+/*************************************************
+* Function: uart_data_send
+* Description: 数据打包，将获取的cmd_vel信息打包并通过串口发送
+* Parameter: cmd_vel
+* Return: none
+*************************************************/
+void uart_data_send(const geometry_msgs::Twist& cmd_vel){
 	//unsigned char i;
-	float_union Vx,Vy,Ang_v;
-	Vx.fvalue = cmd_vel.linear.x;
-	Vy.fvalue = cmd_vel.linear.y;
-	Ang_v.fvalue = cmd_vel.angular.z;
+	short_union Vx,Vy,Ang_v;
+	Vx.sv = (short)cmd_vel.linear.x * 72;//乘以72(0.05*1440)转换为编码器速度
+	Vy.sv = (short)cmd_vel.linear.y * 72;
+	Ang_v.sv = cmd_vel.angular.z * 72;
 	
 	memset(s_buffer,0,sizeof(s_buffer));
 	//数据打包
 	s_buffer[0] = 0xff;
 	s_buffer[1] = 0xff;
 	//Vx
-	s_buffer[2] = Vx.cvalue[0];
-	s_buffer[3] = Vx.cvalue[1];
-	s_buffer[4] = Vx.cvalue[2];
-	s_buffer[5] = Vx.cvalue[3];
+	s_buffer[2] = Vx.cv[0];
+	s_buffer[3] = Vx.cv[1];
 	//Vy
-	s_buffer[6] = Vy.cvalue[0];
-	s_buffer[7] = Vy.cvalue[1];
-	s_buffer[8] = Vy.cvalue[2];
-	s_buffer[9] = Vy.cvalue[3];
+	s_buffer[4] = Vy.cv[0];
+	s_buffer[5] = Vy.cv[1];
 	//Ang_v
-	s_buffer[10] = Ang_v.cvalue[0];
-	s_buffer[11] = Ang_v.cvalue[1];
-	s_buffer[12] = Ang_v.cvalue[2];
-	s_buffer[13] = Ang_v.cvalue[3];
+	s_buffer[6] = Ang_v.cv[0];
+	s_buffer[7] = Ang_v.cv[1];
+
 	//CRC
-	s_buffer[14] = s_buffer[2]^s_buffer[3]^s_buffer[4]^s_buffer[5]^s_buffer[6]^s_buffer[7]^
-					s_buffer[8]^s_buffer[9]^s_buffer[10]^s_buffer[11]^s_buffer[12]^s_buffer[13];
+	s_buffer[8] = s_buffer[2]^s_buffer[3]^s_buffer[4]^s_buffer[5]^s_buffer[6]^s_buffer[7];
 	/*
 	for(i=0;i<15;i++){
 		ROS_INFO("0x%02x",s_buffer[i]);
