@@ -201,7 +201,7 @@ int main (int argc, char** argv){
 			ROS_INFO_STREAM("End reading from serial port");
 			*/
 			if(data_check(r_buffer) != 0){
-				for(i=0;i<2;i++){
+				for(int i=0;i<2;i++){
 					uart_rcv_data.Speed_A.cv[i] = r_buffer[2+i];
 					uart_rcv_data.Speed_B.cv[i] = r_buffer[4+i];
 					uart_rcv_data.Speed_C.cv[i] = r_buffer[6+i];

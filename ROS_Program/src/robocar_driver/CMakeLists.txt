@@ -21,7 +21,7 @@ include_directories(
 )
 
 add_executable( robocar_driver
-  include/robocar_driver/driver.h
+  include/driver.h
   src/robocar_driver.cpp)
 
 target_link_libraries( robocar_driver
