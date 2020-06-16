@@ -1,7 +1,0 @@
-<launch>
-  <include file="$(find slam_mod)/launch/include/robot_gmapping.launch.xml"/>
-
-  <!-- Move base -->
- <include file="$(find nav_mod)/launch/include/move_base.launch.xml"/>
- 
-</launch>
