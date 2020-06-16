@@ -9,7 +9,7 @@
     <node name="apply_calib" pkg="imu_calib" type="apply_calib" output="screen" respawn="true">
 	<remap from="raw" to="/imu_raw"/>
 	<remap from="corrected" to="/imu"/>
-	<param name="calib_file" value="$(find xtark_driver)/config/imu_calib.yaml"/>
+	<param name="calib_file" value="$(find robocar_driver)/config/imu_calib.yaml"/>
 	<param name="calibrate_gyros" value="true"/>
 	<param name="gyro_calib_samples" value="100"/>
     </node>

@@ -1,16 +1,15 @@
 <launch>
     <param name="use_sim_time" value="false"/>
-    <node name="robocar_driver" pkg="robocar_driver" type="robocar_driver" output="screen" respawn="true">
+    <node name="xtart_driver" pkg="robocar_driver" type="robocar_driver" output="screen" respawn="true">
         <rosparam file="$(find robocar_driver)/config/robocar_params.yaml" command="load"/>
 	<param name="publish_odom_transform" value="true"/>
 	<param name="odom_frame"             value="/odom"/>
     </node>
-    <node name="apply_calib" pkg="imu_calib" type="apply_calib" output="screen" respawn="true">
-	<remap from="raw" to="/imu_raw"/>
-	<remap from="corrected" to="/imu"/>
+    <node name="do_calib" pkg="imu_calib" type="do_calib" output="screen">
+	<remap from="/imu" to="/imu_raw"/>
 	<param name="calib_file" value="$(find robocar_driver)/config/imu_calib.yaml"/>
-	<param name="calibrate_gyros" value="true"/>
-	<param name="gyro_calib_samples" value="100"/>
+	<param name="measurements" value="500"/>
+	<param name="reference_acceleration" value="9.80665"/>
     </node>
     <node pkg="tf" type="static_transform_publisher" name="base_footprint_to_imu" args="-0.05 0 0.05 -1.57 0 0 base_footprint base_imu_link 100"/>
 </launch>

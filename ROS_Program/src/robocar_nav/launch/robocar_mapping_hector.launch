@@ -1,0 +1,23 @@
+<launch>
+
+        <include file="$(find robocar_driver)/launch/robocar_bringup.launch" />
+
+        <!-- Bring up Camera -->
+        <include file="$(find usb_cam)/launch/usb_cam-map.launch"/>
+
+        <include file="$(find hector_mapping)/launch/mapping_default.launch"/>
+
+    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/>
+
+        <node name="robot_pose_publisher" pkg="robot_pose_publisher" type="robot_pose_publisher"/>
+
+
+        <arg name="debug" default="false"/>
+        <node pkg="world_canvas_server" type="world_canvas_server" name="world_canvas_server" args="$(arg debug)">
+                <param name="start_map_manager" value="true"/>
+                <param name="auto_save_map" value="false"/>
+        </node>
+        <node pkg="world_canvas_server" type="map_manager.py" name="map_manager" />
+ 
+
+</launch>
