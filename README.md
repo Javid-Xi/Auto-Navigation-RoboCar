@@ -1,9 +1,7 @@
 # Auto-Navigation-RoboCar
 Autonomous Navigation RoboCar Based on SLAM.  
 MCU_Program: [RoboCar_Driver](https://github.com/Javid-Xi/RoboCar_Driver)
-
-RoboCar系列博客: [Blogs](https://javid.cn/tag/robocar/)  
-(已暂时停更)
+[RoboCar](https://javid.cn/tag/robocar/)  
 
 # Under development
 
